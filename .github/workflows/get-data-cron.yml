@@ -1,0 +1,31 @@
+name: Get datasets every day.
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 9 * * *"
+jobs:
+  get-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install
+        run: |
+          sudo apt install -y firefox
+          pip3 install --upgrade pip
+          pip3 install playwright pandas xlrd openpyxl
+          playwright install firefox
+      - name: Run
+        run: |
+          python3 download_process.py
+      - name: Commit updates
+        uses: EndBug/add-and-commit@v9.1.1
+        with:
+          author_name: bot
+          author_email: bot@example.com
+          message: "Update data"
+          ref: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
