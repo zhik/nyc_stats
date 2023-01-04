@@ -90,7 +90,7 @@ datsets = [
         'url': 'https://dol.ny.gov/statistics-state-and-area-employment-hours-and-earnings',
         'filename': 'nyc-hours-earnings.csv',
         'method': convertFromXlsx,
-        'skiprows': 12
+        'skiprows': 11
     },
     {
         'url': 'https://cdn-charts.streeteasy.com/rentals/All/medianAskingRent_All.zip',
