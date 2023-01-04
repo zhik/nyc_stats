@@ -30,7 +30,8 @@ async def convertFromXlsx(url, filename, oargs):
     #download with xlsx (the proper extension)
     path = temp_path / filename.replace('csv','xlsx')
     urllib.request.urlretrieve(url, path)
-    df = pd.read_excel(path, skiprows = oargs.get('skiprows'))
+    df = pd.read_excel(path, skiprows = oargs.get('skiprows'),
+                             sheet_name = oargs.get('sheet_name',0))
     df.to_csv(filename, index = False)
     
 async def extractFromZip(url, filename, oargs):
@@ -88,9 +89,10 @@ datsets = [
     },
     {
         'url': 'https://dol.ny.gov/statistics-state-and-area-employment-hours-and-earnings',
-        'filename': 'nyc-hours-earnings.csv',
+        'filename': 'nyc-weekly-earnings.csv',
         'method': convertFromXlsx,
-        'skiprows': 11
+        'skiprows': 12,
+        'sheet_name': 2
     },
     {
         'url': 'https://cdn-charts.streeteasy.com/rentals/All/medianAskingRent_All.zip',
