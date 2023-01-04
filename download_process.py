@@ -18,28 +18,29 @@ temp_path = Path("./temp/")
 temp_path.mkdir(parents=True, exist_ok=True)
 
 #datasets and their methods
-async def convertFromXls(url, filename):
+async def convertFromXls(url, filename, oargs):
     #download with xls (the proper extension)
     path = temp_path / filename.replace('csv','xls')
     urllib.request.urlretrieve(url, path)
-    df = pd.read_excel(path)
+    df = pd.read_excel(path, skiprows = oargs.get('skiprows'),
+                             sheet_name = oargs.get('sheet_name',0))
     df.to_csv(filename, index = False)
 
-async def convertFromXlsx(url, filename):
+async def convertFromXlsx(url, filename, oargs):
     #download with xlsx (the proper extension)
     path = temp_path / filename.replace('csv','xlsx')
     urllib.request.urlretrieve(url, path)
-    df = pd.read_excel(path)
+    df = pd.read_excel(path, skiprows = oargs.get('skiprows'))
     df.to_csv(filename, index = False)
     
-async def extractFromZip(url, filename):
+async def extractFromZip(url, filename, oargs):
     path = temp_path / filename.replace('csv','zip')
     urllib.request.urlretrieve(url, path)
     #extract to main folder
     with ZipFile(path,"r") as zip_ref:
         zip_ref.extract(filename, './')
     
-async def downloadOpenTable(url, filename):
+async def downloadOpenTable(url, filename, oargs):
     async with async_playwright() as p:
         browser = await p.firefox.launch()
         page = await browser.new_page()
@@ -62,22 +63,34 @@ datsets = [
     {
         'url': 'https://dol.ny.gov/statistics-new-york-city-employment-statistics',
         'filename': 'nychist.csv',
-        'method': convertFromXlsx
+        'method': convertFromXlsx,
+        'skiprows': 1
     },
     {
         'url': 'https://dol.ny.gov/statistics-new-york-city-labor-force-data',
         'filename': 'nyclfsa.csv',
-        'method': convertFromXlsx
+        'method': convertFromXlsx,
+        'skiprows': 2
     },
     {
         'url': 'https://dol.ny.gov/statistics-laussaxls',
-        'filename': 'laus_sa.csv',
-        'method': convertFromXls
+        'filename': 'laus_sa_state.csv',
+        'method': convertFromXls,
+        'skiprows': 2,
+        'sheet_name': 0
+    },
+    {
+        'url': 'https://dol.ny.gov/statistics-laussaxls',
+        'filename': 'laus_sa_city.csv',
+        'method': convertFromXls,
+        'skiprows': 2,
+        'sheet_name': 1
     },
     {
         'url': 'https://dol.ny.gov/statistics-state-and-area-employment-hours-and-earnings',
         'filename': 'nyc-hours-earnings.csv',
-        'method': convertFromXlsx
+        'method': convertFromXlsx,
+        'skiprows': 12
     },
     {
         'url': 'https://cdn-charts.streeteasy.com/rentals/All/medianAskingRent_All.zip',
@@ -95,7 +108,7 @@ datsets = [
 
 async def main():
     for dataset in datsets:
-        await dataset['method'](dataset['url'], dataset['filename'])
+        await dataset['method'](dataset['url'], dataset['filename'], dataset)
         print(f"downloaded {dataset['filename']}")
 
 asyncio.run(main())
