@@ -65,7 +65,7 @@ datsets = [
         'url': 'https://dol.ny.gov/statistics-new-york-city-employment-statistics',
         'filename': 'nychist.csv',
         'method': convertFromXlsx,
-        'skiprows': 1
+        'skiprows': 0
     },
     {
         'url': 'https://dol.ny.gov/statistics-new-york-city-labor-force-data',
