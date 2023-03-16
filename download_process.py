@@ -98,12 +98,12 @@ datsets = [
         'url': 'https://cdn-charts.streeteasy.com/rentals/All/medianAskingRent_All.zip',
         'filename': 'medianAskingRent_All.csv',
         'method': extractFromZip
-    },
-    {
-        'url': 'https://www.opentable.com/state-of-industry',
-        'filename': '2020-2022vs2019_Reopened_Seated_Diner_Data.csv',
-        'method': downloadOpenTable
-    },
+    }
+    # {
+    #     'url': 'https://www.opentable.com/state-of-industry',
+    #     'filename': '2020-2022vs2019_Reopened_Seated_Diner_Data.csv',
+    #     'method': downloadOpenTable
+    # },
 ]
 
 
