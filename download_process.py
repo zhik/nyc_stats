@@ -47,17 +47,36 @@ async def downloadOpenTable(url, filename, oargs):
         page = await browser.new_page()
         await page.goto(url)
         await page.title()
-        async with page.expect_download() as download_info:
-            button = page.get_by_text("Download dataset").first
-            await button.click()
-            await page.wait_for_timeout(1000)
-        download = await download_info.value
-        await download.save_as(filename)
-        await browser.close()
-        df = pd.read_csv(filename)
-        #filter out
-        df[df['Name'].isin([
-            'New York','Chicago','Boston','Los Angeles'])].to_csv(filename, index = False)  
+
+        data = await page.evaluate("""() => {
+                const seatedDiners = window.__INITIAL_STATE__ .stateOfTheIndustry.seatedDiners
+                const dates = seatedDiners.dailyHeaders.map(d => d.replaceAll('-','/')) 
+                const cities = [ 'New York','Chicago','Boston','Los Angeles']
+                const cityData = seatedDiners.cities.filter(d => cities.includes(d.name)).map(city => {
+                    const c = {Name: city.name, Type: 'city', id: city.name + '-city'}
+                    city.dailyYoY.forEach((d,i) => c[dates[i]] = d)
+                    return c
+                })
+
+                const stateData = seatedDiners.states.filter(d => d.name === 'New York').map(state => {
+                    const s = {Name: state.name, Type: 'state',id: state.name + '-state'}
+                    state.dailyYoY.forEach((d,i) => s[dates[i]] = d)
+                    return s
+                })
+
+                return [...cityData, ...stateData]
+            }
+        """)  
+
+        df = pd.DataFrame(data)
+        #filter out columns for the current year, then join
+        df_legacy = pd.read_csv('./2020-2022vs2019_Reopened_Seated_Diner_Data_Legacy.csv')
+        df_legacy['id'] = df_legacy.apply(lambda d: d['Name'] + '-' + d['Type'], axis = 1)
+        del df_legacy['Name']
+        del df_legacy['Type']
+        columns_before_2023 = [col for col in df_legacy.columns if '2023' not in col] 
+        pd.merge(df_legacy[columns_before_2023], df, on = 'id', how = 'outer').to_csv(filename, index = False)
+
 
 datsets = [
     #todo clean up datasets using sheet selections
@@ -98,12 +117,12 @@ datsets = [
         'url': 'https://cdn-charts.streeteasy.com/rentals/All/medianAskingRent_All.zip',
         'filename': 'medianAskingRent_All.csv',
         'method': extractFromZip
+    },
+    {
+        'url': 'https://www.opentable.com/state-of-industry',
+        'filename': '2020-2022vs2019_Reopened_Seated_Diner_Data.csv',
+        'method': downloadOpenTable
     }
-    # {
-    #     'url': 'https://www.opentable.com/state-of-industry',
-    #     'filename': '2020-2022vs2019_Reopened_Seated_Diner_Data.csv',
-    #     'method': downloadOpenTable
-    # },
 ]
 
 
